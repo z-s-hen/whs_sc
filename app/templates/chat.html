@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Live Chat</h2>
+<div class="mb-3">
+  <label>Room name:</label>
+  <input type="text" id="room" class="form-control" placeholder="e.g. thrift-room">
+  <button onclick="joinRoom()" class="btn btn-primary mt-2">Join</button>
+</div>
+
+<div id="chat" class="border p-3 mb-3" style="height:300px; overflow-y:scroll;"></div>
+
+<div>
+  <input type="text" id="message" class="form-control" placeholder="Type a message">
+  <button onclick="sendMessage()" class="btn btn-success mt-2">Send</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
+<script>
+let socket = io();
+let room = "";
+
+function joinRoom() {
+    room = document.getElementById("room").value;
+    socket.emit("join", { room: room, username: "{{ current_user.username }}" });
+}
+
+socket.on("message", function(data) {
+    let chat = document.getElementById("chat");
+    chat.innerHTML += "<div>" + data.msg + "</div>";
+    chat.scrollTop = chat.scrollHeight;
+});
+
+function sendMessage() {
+    const msg = document.getElementById("message").value;
+    if (room && msg) {
+        socket.emit("message", {
+            room: room,
+            username: "{{ current_user.username }}",
+            msg: msg
+        });
+        document.getElementById("message").value = "";
+    }
+}
+</script>
+{% endblock %}
